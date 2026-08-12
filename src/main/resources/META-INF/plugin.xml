@@ -15,6 +15,7 @@
 
     <extensions defaultExtensionNs="com.intellij">
         <completion.contributor language="PHP" implementationClass="com.github.majesticworld.phoenixphp.completion.ProjectDirCompletionContributor" order="first" />
+        <psi.referenceContributor language="PHP" implementation="com.github.majesticworld.phoenixphp.completion.ProjectDirReferenceContributor" />
         <toolWindow factoryClass="com.github.majesticworld.phoenixphp.toolWindow.MyToolWindowFactory" id="MyToolWindow"/>
         <postStartupActivity implementation="com.github.majesticworld.phoenixphp.startup.MyProjectActivity" />
     </extensions>

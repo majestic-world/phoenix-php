@@ -9,9 +9,6 @@ import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.ProcessingContext
-import com.jetbrains.php.PhpIndex
-import com.jetbrains.php.lang.psi.elements.Function
-import com.jetbrains.php.lang.psi.elements.FunctionReference
 import com.jetbrains.php.lang.psi.elements.StringLiteralExpression
 import com.intellij.icons.AllIcons
 
@@ -41,38 +38,15 @@ class ProjectDirCompletionContributor : CompletionContributor() {
                 StringLiteralExpression::class.java,
                 false,
             ) ?: return
-            val functionCall = PsiTreeUtil.getParentOfType(
-                literal,
-                FunctionReference::class.java,
-                false,
-            ) ?: return
-
-            if (!functionCall.name.equals(PROJECT_DIR_FUNCTION, ignoreCase = true) ||
-                functionCall.parameters.firstOrNull() != literal
-            ) {
-                return
-            }
-
-            val root = helperRoot(functionCall) ?: return
+            if (!ProjectDirPathResolver.isProjectDirArgument(literal)) return
             val requestedPath = RequestedPath.from(pathBeforeCaret(literal, parameters.offset)) ?: return
-            val directory = requestedPath.resolveFrom(root) ?: return
+            val directory = ProjectDirPathResolver.resolveDirectory(literal, requestedPath.directories) ?: return
             val matchedResult = result.withPrefixMatcher(requestedPath.fileNamePrefix)
 
             directory.children
                 .asSequence()
                 .sortedWith(compareByDescending<VirtualFile> { it.isDirectory }.thenBy { it.name.lowercase() })
                 .forEach { child -> matchedResult.addElement(toLookupElement(child)) }
-        }
-
-        private fun helperRoot(functionCall: FunctionReference): VirtualFile? {
-            val helper = functionCall.resolve() as? Function
-                ?: PhpIndex.getInstance(functionCall.project)
-                    .getFunctionsByName(PROJECT_DIR_FUNCTION)
-                    .firstOrNull()
-                ?: return null
-            // projectDir() conventionally returns dirname(__DIR__), which is the
-            // parent of the directory containing the helper declaration.
-            return helper.containingFile.virtualFile?.parent?.parent
         }
 
         private fun pathBeforeCaret(literal: StringLiteralExpression, caretOffset: Int): String {
@@ -92,10 +66,6 @@ class ProjectDirCompletionContributor : CompletionContributor() {
         val directories: List<String>,
         val fileNamePrefix: String,
     ) {
-        fun resolveFrom(root: VirtualFile): VirtualFile? = directories.fold(root) { current, segment ->
-            current.findChild(segment)?.takeIf { it.isDirectory } ?: return null
-        }
-
         companion object {
             fun from(value: String): RequestedPath? {
                 val path = value.replace('\\', '/')
@@ -112,9 +82,5 @@ class ProjectDirCompletionContributor : CompletionContributor() {
                 )
             }
         }
-    }
-
-    private companion object {
-        const val PROJECT_DIR_FUNCTION = "projectDir"
     }
 }
