@@ -8,3 +8,4 @@
 - PhpStorm 2026.2 target configuration, including the bundled PHP API dependency.
 - Java 25 toolchain and Kotlin compiler update required by PhpStorm 2026.2.
 - Rename test compatibility with PhpStorm 2026.2 VFS root-access rules.
+- File and directory completion for the first argument of `projectDir()`.
