@@ -10,3 +10,4 @@
 - Rename test compatibility with PhpStorm 2026.2 VFS root-access rules.
 - File and directory completion for the first argument of `projectDir()`.
 - Ctrl/Cmd navigation from `projectDir()` paths to files and directories.
+- Extensionless completion and navigation for Plates templates rendered by `view()`.
