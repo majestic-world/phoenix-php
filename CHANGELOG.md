@@ -11,3 +11,4 @@
 - File and directory completion for the first argument of `projectDir()`.
 - Ctrl/Cmd navigation from `projectDir()` paths to files and directories.
 - Extensionless completion and navigation for Plates templates rendered by `view()`.
+- `projectDir()` root calculation now respects the level argument of `dirname(__DIR__, N)`.

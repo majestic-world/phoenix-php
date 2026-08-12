@@ -14,7 +14,7 @@ import com.intellij.icons.AllIcons
 
 /**
  * Completes the first string argument of projectDir(), relative to the directory
- * returned by the conventional `dirname(__DIR__)` implementation of that helper.
+ * returned by the helper's `dirname(__DIR__, N)` implementation.
  */
 class ProjectDirCompletionContributor : CompletionContributor() {
 

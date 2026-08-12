@@ -40,9 +40,18 @@ internal object ProjectDirPathResolver {
                 .firstOrNull { it.name.equals(FUNCTION_NAME, ignoreCase = true) }
             ?: return null
 
-        // projectDir() returns dirname(__DIR__), which is the parent of the
-        // directory that contains the helper declaration.
-        return helper.containingFile.virtualFile?.parent?.parent
+        val helperDirectory = helper.containingFile.virtualFile?.parent ?: return null
+        val levels = DIRNAME_LEVELS.find(helper.text)
+            ?.groupValues
+            ?.get(1)
+            ?.toIntOrNull()
+            ?: 1
+
+        // dirname(__DIR__, N) moves N levels above the directory containing
+        // the helper. With no second argument, PHP uses N = 1.
+        return generateSequence(helperDirectory) { it.parent }
+            .drop(levels)
+            .firstOrNull()
     }
 
     private fun functionCall(literal: StringLiteralExpression): FunctionReference? {
@@ -57,4 +66,9 @@ internal object ProjectDirPathResolver {
                 it.parameters.firstOrNull() == literal
         }
     }
+
+    private val DIRNAME_LEVELS = Regex(
+        """dirname\s*\(\s*__DIR__\s*,\s*(\d+)\s*\)""",
+        RegexOption.IGNORE_CASE,
+    )
 }
