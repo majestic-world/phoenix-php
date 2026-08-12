@@ -1,45 +1,58 @@
-# phoenix-php
+# Phoenix PHP
 
-![Build](https://github.com/majestic-world/phoenix-php/workflows/Build/badge.svg)
-[![Version](https://img.shields.io/jetbrains/plugin/v/MARKETPLACE_ID.svg)](https://plugins.jetbrains.com/plugin/MARKETPLACE_ID)
-[![Downloads](https://img.shields.io/jetbrains/plugin/d/MARKETPLACE_ID.svg)](https://plugins.jetbrains.com/plugin/MARKETPLACE_ID)
+> Melhor suporte para helpers PHP no **PhpStorm 2026.2+**.
 
-## Template ToDo list
-- [x] Create a new [IntelliJ Platform Plugin Template][template] project.
-- [ ] Get familiar with the [template documentation][template].
-- [ ] Adjust the [group](./gradle.properties), as well as the [id](./src/main/resources/META-INF/plugin.xml), [name](./src/main/resources/META-INF/plugin.xml), and [sources package](./src/main/kotlin).
-- [ ] Adjust the plugin [description](./src/main/resources/META-INF/plugin.xml) (see [Tips][docs:plugin-description]) and this README to describe what your plugin does.
-- [ ] Review the [Legal Agreements](https://plugins.jetbrains.com/docs/marketplace/legal-agreements.html?from=IJPluginTemplate).
-- [ ] [Publish a plugin manually](https://plugins.jetbrains.com/docs/intellij/publishing-plugin.html?from=IJPluginTemplate) for the first time.
-- [ ] Set the `MARKETPLACE_ID` in the above README badges. You can obtain it once the plugin is published to JetBrains Marketplace.
-- [ ] Set the [Plugin Signing](https://plugins.jetbrains.com/docs/intellij/plugin-signing.html?from=IJPluginTemplate) related [secrets](https://github.com/JetBrains/intellij-platform-plugin-template#environment-variables).
-- [ ] Set the [Deployment Token](https://plugins.jetbrains.com/docs/marketplace/plugin-upload.html?from=IJPluginTemplate).
-- [ ] Click the <kbd>Watch</kbd> button on the top of the [IntelliJ Platform Plugin Template][template] to be notified about releases containing new features and fixes.
+O Phoenix PHP adiciona autocomplete e navegação para helpers simples que normalmente não podem ser entendidos pelo IDE.
 
-This plugin targets PhpStorm 2026.2 or newer and can use the APIs provided by PhpStorm's bundled PHP plugin.
+| Helper | O que o plugin entrega |
+| --- | --- |
+| `projectDir()` | Arquivos e pastas relativos a `dirname(__DIR__, N)` |
+| `view()` | Templates do Plates sem a extensão do arquivo |
+| `env()` | Chaves do arquivo `.env`, preservando o casing original |
 
-## Installation
+## projectDir
 
-- Using the IDE built-in plugin system:
+```php
+function projectDir(?string $path = null): string
+{
+    $root = dirname(__DIR__, 2);
+    return $root . $path;
+}
 
-  <kbd>Settings/Preferences</kbd> > <kbd>Plugins</kbd> > <kbd>Marketplace</kbd> > <kbd>Search for "phoenix-php"</kbd> >
-  <kbd>Install</kbd>
+projectDir('/views/home.php');
+```
 
-- Using JetBrains Marketplace:
+Use <kbd>Ctrl</kbd> + <kbd>Space</kbd> para listar arquivos e pastas a partir da raiz calculada. <kbd>Ctrl</kbd> + clique ou <kbd>Ctrl</kbd> + <kbd>B</kbd> abre arquivos no editor e revela pastas na árvore do projeto.
 
-  Go to [JetBrains Marketplace](https://plugins.jetbrains.com/plugin/MARKETPLACE_ID) and install it by clicking the <kbd>Install to ...</kbd> button in case your IDE is running.
+## view
 
-  You can also download the [latest release](https://plugins.jetbrains.com/plugin/MARKETPLACE_ID/versions) from JetBrains Marketplace and install it manually using
-  <kbd>Settings/Preferences</kbd> > <kbd>Plugins</kbd> > <kbd>⚙️</kbd> > <kbd>Install plugin from disk...</kbd>
+```php
+use League\Plates\Engine;
 
-- Manually:
+function view(string $name, array $data = []): void
+{
+    $engine = new Engine(__DIR__ . '/../views');
+    echo $engine->render($name, $data);
+}
 
-  Download the [latest release](https://github.com/majestic-world/phoenix-php/releases/latest) and install it manually using
-  <kbd>Settings/Preferences</kbd> > <kbd>Plugins</kbd> > <kbd>⚙️</kbd> > <kbd>Install plugin from disk...</kbd>
+view('admin/home'); // views/admin/home.php
+```
 
+O autocomplete mostra nomes de templates sem extensão e a navegação abre o arquivo correspondente.
+
+## env
+
+```php
+function env(string $key, mixed $default = null): mixed
+{
+    return $_ENV[$key] ?? $default;
+}
+
+env('ADMIN_ROUTER');
+```
+
+As chaves são lidas do `.env`. A sugestão é case-insensitive, mas a inserção sempre mantém exatamente o nome definido no arquivo — por exemplo, `ADMIN_ROUTER`.
 
 ---
-Plugin based on the [IntelliJ Platform Plugin Template][template].
 
-[template]: https://github.com/JetBrains/intellij-platform-plugin-template
-[docs:plugin-description]: https://plugins.jetbrains.com/docs/intellij/plugin-user-experience.html#plugin-description-and-presentation
+Desenvolvido para **PhpStorm 2026.2+** · Requer Java 25 para desenvolver e executar o plugin.
