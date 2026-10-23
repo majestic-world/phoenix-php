@@ -1,18 +1,15 @@
 package com.github.majesticworld.phoenixphp.completion
 
+import com.intellij.openapi.roots.ProjectFileIndex
+import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.util.PsiTreeUtil
-import com.jetbrains.php.PhpIndex
 import com.jetbrains.php.lang.psi.elements.Function
 import com.jetbrains.php.lang.psi.elements.FunctionReference
 import com.jetbrains.php.lang.psi.elements.StringLiteralExpression
 
-/** Resolves view names using the directory passed to League\Plates\Engine in view(). */
+/** Resolves annotated view directories and conventional Plates view() helpers. */
 internal object ViewPathResolver {
-
-    const val FUNCTION_NAME = "view"
-
-    fun isViewArgument(literal: StringLiteralExpression): Boolean = functionCall(literal) != null
 
     fun resolveDirectory(literal: StringLiteralExpression, directories: List<String>): VirtualFile? {
         val root = viewRoot(literal) ?: return null
@@ -44,12 +41,27 @@ internal object ViewPathResolver {
         if (file.isDirectory) file.name else file.name.substringBeforeLast('.', missingDelimiterValue = file.name)
 
     private fun viewRoot(literal: StringLiteralExpression): VirtualFile? {
-        val functionCall = functionCall(literal) ?: return null
-        val helper = functionCall.resolve() as? Function
-            ?: PhpIndex.getInstance(functionCall.project)
-                .getFunctionsByName(FUNCTION_NAME)
-                .firstOrNull { it.name.equals(FUNCTION_NAME, ignoreCase = true) }
-            ?: return null
+        val call = PsiTreeUtil.getParentOfType(literal, FunctionReference::class.java, false) ?: return null
+        val helper = call.resolve() as? Function ?: return null
+        val parameterName = helper.parameters.firstOrNull()?.name ?: return null
+        if (call.getParameter(parameterName, 0) != literal) return null
+
+        val annotation = helper.docComment?.getTagElementsByName("@phoenix-view")?.firstOrNull()
+        if (annotation != null) {
+            val path = annotation.tagValue.trim().replace('\\', '/')
+            if (path.isBlank() || path.startsWith('/') || ':' in path) return null
+            val segments = path.split('/').filter { it.isNotEmpty() && it != "." }
+            if (".." in segments) return null
+            val file = literal.containingFile.originalFile.virtualFile ?: return null
+            val root = ProjectFileIndex.getInstance(literal.project).getContentRootForFile(file)
+                ?: literal.project.basePath?.let { LocalFileSystem.getInstance().findFileByPath(it) }
+                ?: return null
+            return segments.fold(root) { current, segment ->
+                current.findChild(segment)?.takeIf { it.isDirectory } ?: return null
+            }
+        }
+
+        if (!call.name.equals("view", ignoreCase = true)) return null
         val helperDirectory = helper.containingFile.virtualFile?.parent ?: return null
         val relativePath = ENGINE_DIRECTORY.find(helper.text)?.groupValues?.get(2) ?: return null
 
@@ -62,19 +74,6 @@ internal object ViewPathResolver {
                     else -> current.findChild(segment)?.takeIf { it.isDirectory } ?: return null
                 }
             }
-    }
-
-    private fun functionCall(literal: StringLiteralExpression): FunctionReference? {
-        val functionCall = PsiTreeUtil.getParentOfType(
-            literal,
-            FunctionReference::class.java,
-            false,
-        ) ?: return null
-
-        return functionCall.takeIf {
-            it.name.equals(FUNCTION_NAME, ignoreCase = true) &&
-                it.parameters.firstOrNull() == literal
-        }
     }
 
     private val ENGINE_DIRECTORY = Regex(

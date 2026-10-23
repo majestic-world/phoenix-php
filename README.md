@@ -29,16 +29,30 @@ Use <kbd>Ctrl</kbd> + <kbd>Space</kbd> para listar arquivos e pastas a partir da
 ```php
 use League\Plates\Engine;
 
+/**
+ * @phoenix-view resources/views
+ */
 function view(string $name, array $data = []): void
 {
-    $engine = new Engine(__DIR__ . '/../views');
+    static $engine = null;
+
+    $engine ??= new Engine(projectDir('resources/views'));
+
     echo $engine->render($name, $data);
 }
 
-view('admin/home'); // views/admin/home.php
+view('admin/home'); // resources/views/admin/home.php
 ```
 
 O autocomplete mostra nomes de templates sem extensão e a navegação abre o arquivo correspondente.
+
+Use `@phoenix-view` no PHPDoc da função ou do método que recebe o nome do template como primeiro parâmetro. O nome da função ou do método é livre; funciona com métodos de instância, métodos estáticos e funções importadas com alias.
+
+A pasta é relativa à raiz do projeto, não ao arquivo do helper. Em projetos com múltiplas raízes de conteúdo, usa a raiz do arquivo que faz a chamada. Aceita `resources/views` e `resources\views`; não use caminhos absolutos ou `..`.
+
+O autocomplete também funciona em subpastas e com argumentos nomeados. <kbd>Ctrl</kbd> + clique ou <kbd>Ctrl</kbd> + <kbd>B</kbd> no nome abre o template.
+
+A anotação tem prioridade sobre a detecção do corpo da função. Sem anotação, a detecção de `new Engine(__DIR__ . '...')` em `view()` continua disponível. Uma pasta anotada inexistente não gera sugestões de outro diretório. A anotação é usada apenas pela IDE e não altera a execução do PHP.
 
 ## env
 

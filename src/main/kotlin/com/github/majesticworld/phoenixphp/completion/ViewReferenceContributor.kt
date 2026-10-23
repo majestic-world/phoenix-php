@@ -23,9 +23,7 @@ class ViewReferenceContributor : PsiReferenceContributor() {
                     context: ProcessingContext,
                 ): Array<PsiReference> {
                     val literal = element as? StringLiteralExpression ?: return PsiReference.EMPTY_ARRAY
-                    if (!ViewPathResolver.isViewArgument(literal) ||
-                        ViewPathResolver.resolveTarget(literal) == null
-                    ) {
+                    if (ViewPathResolver.resolveTarget(literal) == null) {
                         return PsiReference.EMPTY_ARRAY
                     }
 

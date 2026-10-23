@@ -35,8 +35,6 @@ class ViewCompletionContributor : CompletionContributor() {
                 StringLiteralExpression::class.java,
                 false,
             ) ?: return
-            if (!ViewPathResolver.isViewArgument(literal)) return
-
             val requestedPath = RequestedPath.from(pathBeforeCaret(literal, parameters.offset)) ?: return
             val directory = ViewPathResolver.resolveDirectory(literal, requestedPath.directories) ?: return
             val matchedResult = result.withPrefixMatcher(requestedPath.fileNamePrefix)
