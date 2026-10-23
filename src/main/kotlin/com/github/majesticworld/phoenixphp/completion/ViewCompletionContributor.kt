@@ -37,7 +37,7 @@ class ViewCompletionContributor : CompletionContributor() {
             ) ?: return
             val requestedPath = RequestedPath.from(pathBeforeCaret(literal, parameters.offset)) ?: return
             val directory = ViewPathResolver.resolveDirectory(literal, requestedPath.directories) ?: return
-            val matchedResult = result.withPrefixMatcher(requestedPath.fileNamePrefix)
+            val matchedResult = result.withPrefixMatcher(requestedPath.fileNamePrefix).caseInsensitive()
 
             directory.children
                 .asSequence()
@@ -58,6 +58,14 @@ class ViewCompletionContributor : CompletionContributor() {
                 .withPresentableText(lookupName)
                 .withTypeText(file.name, true)
                 .withIcon(if (file.isDirectory) AllIcons.Nodes.Folder else AllIcons.FileTypes.Any_type)
+                .withInsertHandler { insertionContext, _ ->
+                    insertionContext.document.replaceString(
+                        insertionContext.startOffset,
+                        insertionContext.tailOffset,
+                        lookupName,
+                    )
+                    insertionContext.tailOffset = insertionContext.startOffset + lookupName.length
+                }
         }
     }
 

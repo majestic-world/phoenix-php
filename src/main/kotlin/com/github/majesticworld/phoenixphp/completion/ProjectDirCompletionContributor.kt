@@ -12,10 +12,7 @@ import com.intellij.util.ProcessingContext
 import com.jetbrains.php.lang.psi.elements.StringLiteralExpression
 import com.intellij.icons.AllIcons
 
-/**
- * Completes the first string argument of projectDir(), relative to the directory
- * returned by the helper's `dirname(__DIR__, N)` implementation.
- */
+/** Completes paths relative to an annotated directory or a conventional projectDir() helper. */
 class ProjectDirCompletionContributor : CompletionContributor() {
 
     init {
@@ -38,10 +35,9 @@ class ProjectDirCompletionContributor : CompletionContributor() {
                 StringLiteralExpression::class.java,
                 false,
             ) ?: return
-            if (!ProjectDirPathResolver.isProjectDirArgument(literal)) return
             val requestedPath = RequestedPath.from(pathBeforeCaret(literal, parameters.offset)) ?: return
             val directory = ProjectDirPathResolver.resolveDirectory(literal, requestedPath.directories) ?: return
-            val matchedResult = result.withPrefixMatcher(requestedPath.fileNamePrefix)
+            val matchedResult = result.withPrefixMatcher(requestedPath.fileNamePrefix).caseInsensitive()
 
             directory.children
                 .asSequence()
@@ -55,11 +51,22 @@ class ProjectDirCompletionContributor : CompletionContributor() {
             return literal.contents.substring(0, caretInContents)
         }
 
-        private fun toLookupElement(file: VirtualFile) = LookupElementBuilder
-            .create(file.name + if (file.isDirectory) "/" else "")
-            .withPresentableText(file.name)
-            .withTypeText(file.path, true)
-            .withIcon(if (file.isDirectory) AllIcons.Nodes.Folder else AllIcons.FileTypes.Any_type)
+        private fun toLookupElement(file: VirtualFile): LookupElementBuilder {
+            val lookupName = file.name + if (file.isDirectory) "/" else ""
+            return LookupElementBuilder
+                .create(lookupName)
+                .withPresentableText(file.name)
+                .withTypeText(file.path, true)
+                .withIcon(if (file.isDirectory) AllIcons.Nodes.Folder else AllIcons.FileTypes.Any_type)
+                .withInsertHandler { insertionContext, _ ->
+                    insertionContext.document.replaceString(
+                        insertionContext.startOffset,
+                        insertionContext.tailOffset,
+                        lookupName,
+                    )
+                    insertionContext.tailOffset = insertionContext.startOffset + lookupName.length
+                }
+        }
     }
 
     private data class RequestedPath(
@@ -69,8 +76,6 @@ class ProjectDirCompletionContributor : CompletionContributor() {
         companion object {
             fun from(value: String): RequestedPath? {
                 val path = value.replace('\\', '/')
-                if (path.isNotEmpty() && !path.startsWith('/')) return null
-
                 val segments = path.split('/')
                 val hasTrailingSlash = path.endsWith('/')
                 val directorySegments = if (hasTrailingSlash) segments else segments.dropLast(1)

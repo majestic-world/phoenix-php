@@ -23,9 +23,7 @@ class ProjectDirReferenceContributor : PsiReferenceContributor() {
                     context: ProcessingContext,
                 ): Array<PsiReference> {
                     val literal = element as? StringLiteralExpression ?: return PsiReference.EMPTY_ARRAY
-                    if (!ProjectDirPathResolver.isProjectDirArgument(literal) ||
-                        ProjectDirPathResolver.resolveTarget(literal) == null
-                    ) {
+                    if (ProjectDirPathResolver.resolveTarget(literal) == null) {
                         return PsiReference.EMPTY_ARRAY
                     }
 

@@ -2,17 +2,12 @@ package com.github.majesticworld.phoenixphp.completion
 
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.util.PsiTreeUtil
-import com.jetbrains.php.PhpIndex
 import com.jetbrains.php.lang.psi.elements.Function
 import com.jetbrains.php.lang.psi.elements.FunctionReference
 import com.jetbrains.php.lang.psi.elements.StringLiteralExpression
 
-/** Resolves paths according to the conventional projectDir() helper implementation. */
+/** Resolves annotated project directories and conventional projectDir() helpers. */
 internal object ProjectDirPathResolver {
-
-    const val FUNCTION_NAME = "projectDir"
-
-    fun isProjectDirArgument(literal: StringLiteralExpression): Boolean = functionCall(literal) != null
 
     fun resolveDirectory(literal: StringLiteralExpression, directories: List<String>): VirtualFile? {
         val root = helperRoot(literal) ?: return null
@@ -23,8 +18,6 @@ internal object ProjectDirPathResolver {
 
     fun resolveTarget(literal: StringLiteralExpression): VirtualFile? {
         val path = literal.contents.replace('\\', '/')
-        if (!path.startsWith('/')) return null
-
         val segments = path.split('/').filter { it.isNotBlank() && it != "." }
         if (segments.any { it == ".." }) return null
 
@@ -33,12 +26,15 @@ internal object ProjectDirPathResolver {
     }
 
     private fun helperRoot(literal: StringLiteralExpression): VirtualFile? {
-        val functionCall = functionCall(literal) ?: return null
-        val helper = functionCall.resolve() as? Function
-            ?: PhpIndex.getInstance(functionCall.project)
-                .getFunctionsByName(FUNCTION_NAME)
-                .firstOrNull { it.name.equals(FUNCTION_NAME, ignoreCase = true) }
-            ?: return null
+        val call = PsiTreeUtil.getParentOfType(literal, FunctionReference::class.java, false) ?: return null
+        val helper = call.resolve() as? Function ?: return null
+        val parameterName = helper.parameters.firstOrNull()?.name ?: return null
+        if (call.getParameter(parameterName, 0) != literal) return null
+
+        val annotation = helper.docComment?.getTagElementsByName("@phoenix-project-dir")?.firstOrNull()
+        if (annotation != null) return projectRelativeDirectory(literal, annotation.tagValue)
+
+        if (!call.name.equals("projectDir", ignoreCase = true)) return null
 
         val helperDirectory = helper.containingFile.virtualFile?.parent ?: return null
         val levels = DIRNAME_LEVELS.find(helper.text)
@@ -52,19 +48,6 @@ internal object ProjectDirPathResolver {
         return generateSequence(helperDirectory) { it.parent }
             .drop(levels)
             .firstOrNull()
-    }
-
-    private fun functionCall(literal: StringLiteralExpression): FunctionReference? {
-        val functionCall = PsiTreeUtil.getParentOfType(
-            literal,
-            FunctionReference::class.java,
-            false,
-        ) ?: return null
-
-        return functionCall.takeIf {
-            it.name.equals(FUNCTION_NAME, ignoreCase = true) &&
-                it.parameters.firstOrNull() == literal
-        }
     }
 
     private val DIRNAME_LEVELS = Regex(

@@ -15,7 +15,9 @@
 - `.env` key completion for the first argument of a project-defined `env()` helper.
 - IDE-only `@phoenix-struct` annotation for Rider ORM result properties, including nullable rows, collections, and fluent queries.
 - Project-root-relative `@phoenix-view` directories for template completion and navigation in annotated PHP functions and methods.
+- Required `@phoenix-project-dir` directory values for project-relative file and folder completion and navigation, including paths without a leading slash.
 
 ### Fixed
 - Removed duplicate `env()` suggestions and preserve the exact `.env` key casing on insertion.
 - Resolve view helpers by their actual declaration, preventing suggestions from unrelated same-named functions.
+- Case-insensitive path and template completion with exact file and directory casing preserved on selection.

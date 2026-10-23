@@ -6,23 +6,34 @@ O Phoenix PHP adiciona autocomplete e navegação para helpers simples que norma
 
 | Helper | O que o plugin entrega |
 | --- | --- |
-| `projectDir()` | Arquivos e pastas relativos a `dirname(__DIR__, N)` |
+| `projectDir()` | Arquivos e pastas relativos à anotação ou a `dirname(__DIR__, N)` |
 | `view()` | Templates do Plates sem a extensão do arquivo |
 | `env()` | Chaves do arquivo `.env`, preservando o casing original |
+
+No autocomplete de `projectDir()` e `view()`, a busca não diferencia maiúsculas de minúsculas: `comma`, `COMMA` e `cOmMa` encontram `Command`. A seleção insere o nome real, preservando a caixa original, a extensão dos arquivos em `projectDir()` e a `/` final das pastas; os templates de `view()` continuam sem extensão. Isso não normaliza nem altera a resolução dos diretórios já digitados no caminho.
 
 ## projectDir
 
 ```php
+/**
+ * @phoenix-project-dir src
+ */
 function projectDir(?string $path = null): string
 {
-    $root = dirname(__DIR__, 2);
-    return $root . $path;
+    $root = dirname(__DIR__, 2) . '/src';
+    return $root . ($path === null ? '' : '/' . ltrim($path, '/\\'));
 }
 
-projectDir('/views/home.php');
+projectDir('Model/Mail.php'); // src/Model/Mail.php
 ```
 
-Use <kbd>Ctrl</kbd> + <kbd>Space</kbd> para listar arquivos e pastas a partir da raiz calculada. <kbd>Ctrl</kbd> + clique ou <kbd>Ctrl</kbd> + <kbd>B</kbd> abre arquivos no editor e revela pastas na árvore do projeto.
+`@phoenix-project-dir src` define `<raiz do projeto>/src` como base da IDE, independentemente da localização do helper. O valor da anotação é obrigatório e pode ser outra pasta relativa, como `resources` ou `src\Model`. Em projetos com múltiplas raízes de conteúdo, usa a raiz do arquivo que faz a chamada.
+
+Use <kbd>Ctrl</kbd> + <kbd>Space</kbd> para listar arquivos e pastas a partir dessa base. Os caminhos aceitam `/` e `\`, com ou sem barra inicial: `Model/Mail.php` e `/Model/Mail.php` apontam para o mesmo arquivo dentro de `src`. <kbd>Ctrl</kbd> + clique ou <kbd>Ctrl</kbd> + <kbd>B</kbd> abre arquivos no editor e revela pastas na árvore do projeto.
+
+A anotação pode ser aplicada a funções e métodos de qualquer nome e reconhece o primeiro parâmetro declarado, inclusive em chamadas com argumentos nomeados. Ela tem prioridade sobre a detecção de `dirname(__DIR__, N)`; sem anotação, a detecção antiga de `projectDir()` continua disponível. Valores vazios, pastas inexistentes, caminhos absolutos ou com `..` não fornecem sugestões.
+
+Isso só informa a base para a IDE: não altera o retorno nem a execução da função PHP. A implementação do helper deve continuar retornando o caminho real desejado.
 
 ## view
 
