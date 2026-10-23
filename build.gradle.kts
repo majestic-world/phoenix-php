@@ -20,6 +20,12 @@ dependencies {
         // Target PhpStorm 2026.2 and make the bundled PHP APIs available to the plugin.
         phpstorm("2026.2.0.1")
         bundledPlugin("com.jetbrains.php")
+        testBundledPlugins(
+            "intellij.libraries.misc.plugin",
+            "intellij.testRunner.plugin",
+            "intellij.structuralSearch.plugin",
+            "intellij.structureView.plugin",
+        )
         testFramework(TestFrameworkType.Platform)
     }
 }

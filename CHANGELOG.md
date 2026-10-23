@@ -13,6 +13,7 @@
 - Extensionless completion and navigation for Plates templates rendered by `view()`.
 - `projectDir()` root calculation now respects the level argument of `dirname(__DIR__, N)`.
 - `.env` key completion for the first argument of a project-defined `env()` helper.
+- IDE-only `@phoenix-struct` annotation for Rider ORM result properties, including nullable rows, collections, and fluent queries.
 
 ### Fixed
 - Removed duplicate `env()` suggestions and preserve the exact `.env` key casing on insertion.

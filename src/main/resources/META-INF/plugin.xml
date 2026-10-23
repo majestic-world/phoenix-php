@@ -22,4 +22,7 @@
         <toolWindow factoryClass="com.github.majesticworld.phoenixphp.toolWindow.MyToolWindowFactory" id="MyToolWindow"/>
         <postStartupActivity implementation="com.github.majesticworld.phoenixphp.startup.MyProjectActivity" />
     </extensions>
+    <extensions defaultExtensionNs="com.jetbrains.php">
+        <typeProvider4 implementation="com.github.majesticworld.phoenixphp.completion.ModelStructTypeProvider" />
+    </extensions>
 </idea-plugin>
