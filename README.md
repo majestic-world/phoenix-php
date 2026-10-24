@@ -118,6 +118,19 @@ A inferência é complementar: o PhpStorm pode continuar exibindo `object`, `arr
 
 Isso existe apenas na IDE: não instancia `MailData`, não hidrata registros e não altera retornos ou execução do ORM. O objeto real continua sendo o retornado pelo banco; a anotação não garante `instanceof MailData`.
 
+### Resultados armazenados em propriedades
+
+Ao armazenar o resultado em uma propriedade declarada como `?object`, informe o tipo mais específico para a IDE com o PHPDoc padrão `@var`, usando a mesma classe indicada no model:
+
+```php
+/** @var \Seek\Horus\Struct\MailData|null */
+private static ?object $server = null;
+```
+
+`@phoenix-struct` fornece contexto ao retorno das consultas; não reescreve a declaração de uma propriedade. O `@var` mantém as sugestões em acessos como `self::$server->host` e em outros métodos da classe, sem depender de rastrear a atribuição feita pelo ORM.
+
+Mantenha o tipo nativo `?object` se o ORM retorna objetos genéricos. Trocar esse tipo por `?MailData` alteraria a validação em runtime e poderia causar `TypeError`, pois a struct não é instanciada pelo plugin. O PHPDoc é suficiente para a IDE e não exige outra anotação específica do Phoenix.
+
 ---
 
 Desenvolvido para **PhpStorm 2026.2+** · Requer Java 25 para desenvolver e executar o plugin.
