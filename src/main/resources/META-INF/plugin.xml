@@ -19,6 +19,11 @@
         <completion.contributor language="PHP" implementationClass="com.github.majesticworld.phoenixphp.completion.ViewCompletionContributor" order="first" />
         <psi.referenceContributor language="PHP" implementation="com.github.majesticworld.phoenixphp.completion.ViewReferenceContributor" />
         <completion.contributor language="PHP" implementationClass="com.github.majesticworld.phoenixphp.completion.EnvCompletionContributor" order="first" />
+        <postFormatProcessor implementation="com.github.majesticworld.phoenixphp.formatting.CompactThrowsPostFormatProcessor" order="last" />
+        <intentionAction>
+            <className>com.github.majesticworld.phoenixphp.intentions.AddCompactThrowsIntention</className>
+            <category>Phoenix PHP</category>
+        </intentionAction>
         <toolWindow factoryClass="com.github.majesticworld.phoenixphp.toolWindow.MyToolWindowFactory" id="MyToolWindow"/>
         <postStartupActivity implementation="com.github.majesticworld.phoenixphp.startup.MyProjectActivity" />
     </extensions>

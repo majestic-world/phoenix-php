@@ -131,6 +131,20 @@ private static ?object $server = null;
 
 Mantenha o tipo nativo `?object` se o ORM retorna objetos genéricos. Trocar esse tipo por `?MailData` alteraria a validação em runtime e poderia causar `TypeError`, pois a struct não é instanciada pelo plugin. O PHPDoc é suficiente para a IDE e não exige outra anotação específica do Phoenix.
 
+## PHPDoc @throws compacto
+
+No <kbd>Alt</kbd> + <kbd>Enter</kbd> de uma exceção não documentada, escolha **Add compact PHPDoc @throws tags** para gerar:
+
+```php
+/** @throws Exception */
+```
+
+A ação usa a análise de exceções e a geração de imports do PhpStorm. Está disponível para funções e métodos que ainda não têm PHPDoc; a ação nativa **Add PHPDoc comment with @throws tags** continua disponível e não é substituída.
+
+Um único `@throws` sem descrição fica em uma linha, inclusive após **Reformat Code** (<kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>L</kbd>). A reformatação também compacta comentários existentes com esse formato simples. Comentários com descrições, outras tags ou vários `@throws` permanecem em múltiplas linhas.
+
+O delimitador é `/**`, com dois asteriscos: `/***` não é PHPDoc para o PHP. A alteração é documental e não muda a execução das funções.
+
 ---
 
 Desenvolvido para **PhpStorm 2026.2+** · Requer Java 25 para desenvolver e executar o plugin.

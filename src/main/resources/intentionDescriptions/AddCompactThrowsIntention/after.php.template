@@ -1,0 +1,6 @@
+<?php
+/** @throws Exception */
+function sendMail(): void
+{
+    throw new Exception('No SMTP server configured');
+}
