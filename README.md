@@ -8,9 +8,10 @@ O Phoenix PHP adiciona autocomplete e navegação para helpers simples que norma
 | --- | --- |
 | `projectDir()` | Arquivos e pastas relativos à anotação ou a `dirname(__DIR__, N)` |
 | `view()` | Templates do Plates sem a extensão do arquivo |
+| `assets()` | Arquivos e pastas da base configurada por `@phoenix-asset` |
 | `env()` | Chaves do arquivo `.env`, preservando o casing original |
 
-No autocomplete de `projectDir()` e `view()`, a busca não diferencia maiúsculas de minúsculas: `comma`, `COMMA` e `cOmMa` encontram `Command`. A seleção insere o nome real, preservando a caixa original, a extensão dos arquivos em `projectDir()` e a `/` final das pastas; os templates de `view()` continuam sem extensão. Isso não normaliza nem altera a resolução dos diretórios já digitados no caminho.
+No autocomplete de `projectDir()`, `view()` e helpers anotados com `@phoenix-asset`, a busca não diferencia maiúsculas de minúsculas: `comma`, `COMMA` e `cOmMa` encontram `Command`. A seleção insere o nome real, preservando a caixa original, a extensão dos arquivos em `projectDir()` e assets e a `/` final das pastas; os templates de `view()` continuam sem extensão. Isso não normaliza nem altera a resolução dos diretórios já digitados no caminho.
 
 ## projectDir
 
@@ -64,6 +65,32 @@ A pasta é relativa à raiz do projeto, não ao arquivo do helper. Em projetos c
 O autocomplete também funciona em subpastas e com argumentos nomeados. <kbd>Ctrl</kbd> + clique ou <kbd>Ctrl</kbd> + <kbd>B</kbd> no nome abre o template.
 
 A anotação tem prioridade sobre a detecção do corpo da função. Sem anotação, a detecção de `new Engine(__DIR__ . '...')` em `view()` continua disponível. Uma pasta anotada inexistente não gera sugestões de outro diretório. A anotação é usada apenas pela IDE e não altera a execução do PHP.
+
+## assets
+
+```php
+/**
+ * @phoenix-asset public/assets
+ */
+function assets(string $n, bool $id = true): string
+{
+    static $version = null;
+    if (!$version) {
+        $version = crc32(APP_VERSION);
+    }
+
+    $assetUrl = projectUrl('assets/' . $n);
+    return $assetUrl . ($id ? "?id=$version" : '');
+}
+
+assets('js/app.js'); // public/assets/js/app.js
+```
+
+`@phoenix-asset public/assets` define a pasta relativa à raiz usada pelo autocomplete. O valor é obrigatório; aceita `/` ou `\`, mas não caminhos absolutos nem `..`. Arquivos mantêm a extensão e pastas recebem `/` ao serem selecionadas.
+
+A anotação funciona em funções e métodos de qualquer nome, inclusive funções importadas com alias e chamadas com argumentos nomeados. Somente o primeiro parâmetro declarado recebe sugestões. <kbd>Ctrl</kbd> + clique ou <kbd>Ctrl</kbd> + <kbd>B</kbd> abre o arquivo ou a pasta correspondente.
+
+Isso só fornece contexto para a IDE. Não altera a função, a URL retornada nem qualquer comportamento em runtime.
 
 ## env
 

@@ -13,6 +13,9 @@ class PathCaseCompletionTest : BasePlatformTestCase() {
         myFixture.addFileToProject("resources/views/Admin/CommandList.php", "<h1>Commands</h1>")
         myFixture.addFileToProject("resources/views/Command/Run.php", "<h1>Run</h1>")
         myFixture.addFileToProject("resources/views/CommandBus/Dispatch.php", "<h1>Dispatch</h1>")
+        myFixture.addFileToProject("public/assets/Images/CompanyLogo.SVG", "<svg/>")
+        myFixture.addFileToProject("public/assets/Images/CompanyMark.SVG", "<svg/>")
+        myFixture.addFileToProject("public/assets/ImageCache/keep.txt", "")
         myFixture.addFileToProject(
             "helpers.php",
             """
@@ -21,6 +24,8 @@ class PathCaseCompletionTest : BasePlatformTestCase() {
             function projectDir(string ${'$'}path): string { return ${'$'}path; }
             /** @phoenix-view resources/views */
             function view(string ${'$'}name): void {}
+            /** @phoenix-asset public/assets */
+            function assets(string ${'$'}name): string { return ${'$'}name; }
             """.trimIndent(),
         )
     }
@@ -57,6 +62,15 @@ class PathCaseCompletionTest : BasePlatformTestCase() {
 
     fun testViewDirectorySelectionPreservesItsCaseAndTrailingSlash() {
         select("<?php view('comma<caret>');", "Command/", "<?php view('Command/');")
+    }
+
+    fun testAssetSelectionPreservesCaseExtensionAndDirectorySuffix() {
+        select("<?php assets('ima<caret>');", "Images/", "<?php assets('Images/');")
+        select(
+            "<?php assets('Images/comp<caret>');",
+            "CompanyLogo.SVG",
+            "<?php assets('Images/CompanyLogo.SVG');",
+        )
     }
 
     private fun select(source: String, name: String, expected: String) {

@@ -18,6 +18,8 @@
         <psi.referenceContributor language="PHP" implementation="com.github.majesticworld.phoenixphp.completion.ProjectDirReferenceContributor" />
         <completion.contributor language="PHP" implementationClass="com.github.majesticworld.phoenixphp.completion.ViewCompletionContributor" order="first" />
         <psi.referenceContributor language="PHP" implementation="com.github.majesticworld.phoenixphp.completion.ViewReferenceContributor" />
+        <completion.contributor language="PHP" implementationClass="com.github.majesticworld.phoenixphp.completion.AssetCompletionContributor" order="first" />
+        <psi.referenceContributor language="PHP" implementation="com.github.majesticworld.phoenixphp.completion.AssetReferenceContributor" />
         <completion.contributor language="PHP" implementationClass="com.github.majesticworld.phoenixphp.completion.EnvCompletionContributor" order="first" />
         <postFormatProcessor implementation="com.github.majesticworld.phoenixphp.formatting.CompactThrowsPostFormatProcessor" order="last" />
         <intentionAction>
