@@ -66,6 +66,16 @@ O autocomplete também funciona em subpastas e com argumentos nomeados. <kbd>Ctr
 
 A anotação tem prioridade sobre a detecção do corpo da função. Sem anotação, a detecção de `new Engine(__DIR__ . '...')` em `view()` continua disponível. Uma pasta anotada inexistente não gera sugestões de outro diretório. A anotação é usada apenas pela IDE e não altera a execução do PHP.
 
+Dentro dos templates, os métodos do Plates que recebem nome de template usam a mesma pasta da anotação:
+
+```php
+<?php $this->layout('layouts/main', ['title' => 'Home']) ?>
+<?= $this->insert('partials/menu') ?>
+<?php $html = $this->fetch('partials/card') ?>
+```
+
+Vale para `$this->layout()`, `$this->insert()` e `$this->fetch()` em arquivos que ficam dentro de alguma pasta declarada por `@phoenix-view` em qualquer arquivo do projeto. Com pastas aninhadas, vence a mais específica. Métodos que recebem nomes de seção (`start`, `section`, `push`, `stop`) não recebem sugestões.
+
 ## assets
 
 ```php

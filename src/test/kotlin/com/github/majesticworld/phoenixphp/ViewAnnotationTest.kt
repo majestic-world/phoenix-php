@@ -147,6 +147,49 @@ class ViewAnnotationTest : BasePlatformTestCase() {
         assertTrue("home" in complete("<?php view('<caret>');"))
     }
 
+    fun testPlatesTemplateMethodsUseTheAnnotatedViewDirectory() {
+        val layout = myFixture.addFileToProject("resources/views/layouts/main.php", "")
+        myFixture.addFileToProject("resources/views/layouts/admin.php", "")
+        myFixture.addFileToProject("resources/views/partials/menu.php", "")
+        myFixture.addFileToProject(
+            "src/helpers.php",
+            """
+            <?php
+            /** @phoenix-view resources/views */
+            function render(string ${'$'}name): void {}
+            """.trimIndent(),
+        )
+
+        for (method in listOf("insert", "layout", "fetch")) {
+            val suggestions = completeTemplate("<?php ${'$'}this->$method('layouts/<caret>', ['title' => 'x']) ?>")
+            assertTrue("$method missing views in $suggestions", "main" in suggestions && "admin" in suggestions)
+        }
+        assertFalse("menu" in completeTemplate("<?php ${'$'}this->insert('layouts/main', ['<caret>']) ?>"))
+        assertFalse("menu" in completeTemplate("<?php ${'$'}this->section('<caret>') ?>"))
+
+        val template = myFixture.addFileToProject(
+            "resources/views/pages/home.php",
+            "<?php ${'$'}this->layout('layouts/ma<caret>in') ?>",
+        )
+        myFixture.configureFromExistingVirtualFile(template.virtualFile)
+        val literal = PsiTreeUtil.getParentOfType(
+            myFixture.file.findElementAt(myFixture.caretOffset),
+            StringLiteralExpression::class.java,
+        )!!
+        assertTrue(literal.references.any { it.resolve()?.containingFile?.virtualFile == layout.virtualFile })
+
+        myFixture.configureByText("outside.php", "<?php ${'$'}this->insert('<caret>');")
+        myFixture.completeBasic()
+        assertFalse("layouts/" in myFixture.lookupElementStrings.orEmpty())
+    }
+
+    private fun completeTemplate(source: String): List<String> {
+        val file = myFixture.addFileToProject("resources/views/pages/t${source.hashCode().toUInt()}.php", source)
+        myFixture.configureFromExistingVirtualFile(file.virtualFile)
+        myFixture.completeBasic()
+        return myFixture.lookupElementStrings.orEmpty()
+    }
+
     private fun complete(source: String): List<String> {
         myFixture.configureByText("consumer.php", source)
         myFixture.completeBasic()
